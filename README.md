@@ -1,1 +1,1 @@
-# ExpalinAI package developed by HuangFeini
+# ExplainAI package developed by HuangFeini
