@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
 
     exp =_obtain_lime(model ,train_data=x_train ,feature_names=feature_names ,target_feature="P_F" ,instance=x_test[0])
-    ins ,out =lime_output(exp ,plot=False ,instance=x_test[0])
+    ins ,out =lime_output(exp ,plot=False)
 
     out.to_csv("out.csv")
 

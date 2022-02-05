@@ -1,13 +1,8 @@
 import lime
 from lime.lime_tabular import LimeTabularExplainer
 import pandas as pd
-from feature_selection.feature_selection import split_data
-import numpy as np
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import r2_score
-from sklearn.impute import SimpleImputer
 
-def _obtain_lime(model,train_data,feature_names,target_feature,instance,num_features=6):
+def lime_func(model,train_data,feature_names,target_feature,instance,num_features=6):
     # lime initialization
     predict_fn = lambda x: model.predict(x).astype(float)
 
