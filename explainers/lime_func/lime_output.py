@@ -61,5 +61,12 @@ def lime_output(exp,plot=False):
                 feature_val.append(j)
         lime_df.loc[index] = (feature, max(feature_val), min(feature_val), lime_cont[1])
 
+
+    # if plot:
+    #     import matplotlib.pyplot as plt
+    #     plt.barh(lime_df['feature'],lime_df['lime_val'])
+    #     plt.show()
+
+
     return lime_df
 

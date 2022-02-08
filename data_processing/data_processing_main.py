@@ -1,8 +1,8 @@
 import pandas as pd
-from data_processing.add_variables import time_add,lag_add
-from data_processing.split_data import split_data
-from data_processing.data_cleaning import data_cleaning
-from data_processing.feature_selection import feature_selection
+from ..data_processing.add_variables import time_add,lag_add
+from ..data_processing.split_data import split_data
+from ..data_processing.data_cleaning import data_cleaning
+from ..data_processing.feature_selection import feature_selection
 
 class data_processing_main():
     def __init__(self, data,time_add,lag_add,elim_SM_nan, drop_ir, drop_nan_feature,part,n_estimator,sbs):

@@ -1,4 +1,4 @@
-from explainers.ale import ale as ale
+from ...explainers.ale import ale
 import os
 import matplotlib.pyplot as plt
 

@@ -1,14 +1,31 @@
 import pandas as pd
-from data_processing.data_processing_main import data_processing_main
-
+from ..data_processing.data_processing_main import data_processing_main
+import os
 def input_dataset(flag=0):
     if flag==0:
-        data = pd.read_csv(r"./flx_data/dataset.csv")
+
+        path=os.path.dirname(os.__file__)+"\site-packages\ExplainAI"
+        file_name=path+r"\flx_data\dataset.csv"
+        # print(file_name)
+        data = pd.read_csv(file_name)
+
+
+
     elif flag==1:
-        data = pd.read_csv(r"./flx_data/dataset_process.csv")
+
+        path=os.path.dirname(os.__file__)+"\site-packages\ExplainAI"
+        file_name=path+r"./flx_data/dataset_process.csv"
+        # print(file_name)
+        data = pd.read_csv(file_name)
+
+
     elif flag==2:
-        file = './flx_data/FLX_CN-Ha2_FLUXNET2015_FULLSET_DD_2003-2005_1-4.csv'
-        d = data_processing_main(data=pd.read_csv(file, header=0),
+        path=os.path.dirname(os.__file__)+"\site-packages\ExplainAI"
+        file_name=path+r'./flx_data/FLX_CN-Ha2_FLUXNET2015_FULLSET_DD_2003-2005_1-4.csv'
+
+        data = pd.read_csv(file_name,header=0)
+
+        d = data_processing_main(data=data,
                                  time_add=1,
                                  lag_add=1,
                                  elim_SM_nan=1,

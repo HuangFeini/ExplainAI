@@ -33,5 +33,6 @@ def pi_trans(model,feature_names,preserve):
 def pi_plot(pi_pd):
     plt.figure()
     plt.barh(pi_pd['feature'],pi_pd['weight'])
+    plt.title("Permutation importance")
     plt.show()
 

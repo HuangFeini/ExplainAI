@@ -1,5 +1,5 @@
 
-from preview.preview_utils import (_axes_modify, _modify_legend_ax, _find_bucket, _make_bucket_column_names, _find_onehot_actual,
+from ..preview.preview_utils import (_axes_modify, _modify_legend_ax, _find_bucket, _make_bucket_column_names, _find_onehot_actual,
                     _make_bucket_column_names_percentile, _check_dataset, _check_percentile_range, _check_feature,
                     _check_grid_type, _expand_default, _plot_title, _get_grids)
 
