@@ -3,7 +3,8 @@ from .info_plot_utils import (_target_plot, _info_plot_interact, _actual_plot, _
                               _prepare_info_plot_interact_summary, _prepare_info_plot_data,
                               _check_info_plot_interact_params, _check_info_plot_params)
 from ..preview.preview_utils import _make_list, _check_model, _check_target, _check_classes
-
+import warnings
+warnings.filterwarnings("ignore")
 
 def target_plot(df, feature, feature_name, target, num_grid_points=10, grid_type='percentile',
                 percentile_range=None, grid_range=None, cust_grid_points=None, show_percentile=False,

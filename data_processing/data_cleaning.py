@@ -3,9 +3,9 @@ class data_cleaning():
     '''
     Data washing.
     :parameter
-    data: raw data, dataframe(after adding time-relating features)
+    data: pd.Dataframe,input data
     :returns
-    Newdata: dataframe
+    Newdata: pd.Dataframe, output data
     '''
     def __init__(self,data):
         self.data=data

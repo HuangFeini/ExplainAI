@@ -451,6 +451,8 @@ def pdp_plot(pdp_isolate_out, feature_name, center=True, plot_pts_dist=False, pl
                           count_ax=None, **pdp_plot_params)
 
     axes = {'title_ax': title_ax, 'pdp_ax': pdp_ax}
+
+    plt.show()
     return fig, axes
 
 
@@ -485,6 +487,7 @@ class PDPInteract:
         self.feature_types = feature_types
         self.feature_grids = feature_grids
         self.pdp_isolate_outs = pdp_isolate_outs
+        self.count_data = pdp
         self.pdp = pdp
 
 
@@ -584,6 +587,7 @@ def pdp_interact(model, dataset, model_features, features, num_grid_points=None,
     ice_lines = pd.concat(grid_results, axis=0).reset_index(drop=True)
     pdp = ice_lines.groupby(feature_list, as_index=False).mean()
 
+
     # combine the final results
     pdp_interact_params = {'n_classes': n_classes, 'features': features, 'feature_types': feature_types,
                            'feature_grids': feature_grids}
@@ -599,6 +603,8 @@ def pdp_interact(model, dataset, model_features, features, num_grid_points=None,
     else:
         pdp_interact_out = PDPInteract(
             which_class=None, pdp_isolate_outs=pdp_isolate_outs, pdp=pdp, **pdp_interact_params)
+
+    # pdp_interact_out.count_data=pdp_interact_out.pdp
 
     return pdp_interact_out
 
@@ -799,5 +805,174 @@ def pdp_interact_plot(pdp_interact_out, feature_names, plot_type='contour', x_qu
 
     axes = {'title_ax': title_ax, 'pdp_inter_ax': inter_ax}
 
+    # plt.show()
+
     return fig, axes
 
+def partial_dependence_plot_1d(model, data, model_features, feature,num_grid_points=10, grid_type='percentile',
+                            percentile_range=None, grid_range=None, cust_grid_points=None,
+                            memory_limit=0.5, n_jobs=1, predict_kwds={}, data_transformer=None,
+                            center=True, plot_pts_dist=False, plot_lines=False,
+                            frac_to_plot=1,
+                            cluster=False, n_cluster_centers=None, cluster_method='accurate', x_quantile=False,
+                            show_percentile=False, figsize=None, ncols=2, plot_params=None, which_classes=None,
+                            plot=True,save=True,save_path='pdp.jpg',
+                            **kwargs):
+    '''
+    Parameters
+    ----------
+        model: a fitted sklearn model
+    data: pandas DataFrame
+        data set on which the model is trained
+    model_features: list or 1-d array
+        list of model features
+    feature: string or list
+        feature or feature list to investigate,
+        for one-hot encoding features, feature list is required
+    num_grid_points: integer, optional, default=10
+        number of grid points for numeric feature
+    grid_type: string, optional, default='percentile'
+        'percentile' or 'equal',
+        type of grid points for numeric feature
+    percentile_range: tuple or None, optional, default=None
+        percentile range to investigate,
+        for numeric feature when grid_type='percentile'
+    grid_range: tuple or None, optional, default=None
+        value range to investigate,
+        for numeric feature when grid_type='equal'
+    cust_grid_points: Series, 1d-array, list or None, optional, default=None
+        customized list of grid points for numeric feature
+    memory_limit: float, (0, 1)
+        fraction of memory to use
+    n_jobs: integer, default=1
+
+
+    pdp_isolate_out: (list of) instance of PDPIsolate
+        for multi-class, it is a list
+    feature_name: string
+        name of the feature, not necessary a column name
+    center: bool, default=True
+        whether to center the plot
+    plot_pts_dist: bool, default=False
+        whether to show data points distribution
+    plot_lines: bool, default=False
+        whether to plot out the individual lines
+    frac_to_plot: float or integer, default=1
+        how many lines to plot, can be a integer or a float
+    cluster: bool, default=False
+        whether to cluster the individual lines and only plot out the cluster centers
+    n_cluster_centers: integer, default=None
+        number of cluster centers
+    cluster_method: string, default='accurate'
+        cluster method to use, default is KMeans, if 'approx' is passed, MiniBatchKMeans is used
+    x_quantile: bool, default=False
+        whether to construct x axis ticks using quantiles
+    show_percentile: bool, optional, default=False
+        whether to display the percentile buckets,
+        for numeric feature when grid_type='percentile'
+    figsize: tuple or None, optional, default=None
+        size of the figure, (width, height)
+    ncols: integer, optional, default=2
+        number subplot columns, used when it is multi-class problem
+    plot_params:  dict or None, optional, default=None
+
+    plot:bool, if plt.show()
+    save:bool, if save the picture
+    save_path:string, path of picture saved, default='pdp.jpg'
+
+    :return:
+    '''
+
+    pdp_obj=pdp_isolate(model=model, dataset=data, model_features=model_features, feature=feature,
+                        num_grid_points=num_grid_points, grid_type=grid_type,
+                        percentile_range=percentile_range, grid_range=grid_range, cust_grid_points=cust_grid_points,
+                        memory_limit=memory_limit, n_jobs=n_jobs, predict_kwds=predict_kwds,
+                        data_transformer=data_transformer)
+
+    fig, axes = pdp_plot(pdp_obj, feature_name=feature, center=center, plot_pts_dist=plot_pts_dist,
+                          plot_lines=plot_lines,
+                          frac_to_plot=frac_to_plot,
+                          cluster=cluster, n_cluster_centers=n_cluster_centers, cluster_method=cluster_method,
+                          x_quantile=x_quantile,
+                          show_percentile=show_percentile, figsize=figsize, ncols=ncols, plot_params=plot_params,
+                          which_classes=which_classes)
+
+    if plot:
+        plt.show()
+
+    if save:
+        fig.savefig(save_path)
+
+    return pdp_obj.count_data
+
+
+
+def partial_dependence_plot_2d(model,data,model_features,features,num_grid_points=None, grid_types=None,
+                 percentile_ranges=None, grid_ranges=None, cust_grid_points=None, memory_limit=0.5,
+                 n_jobs=1, predict_kwds={}, data_transformer=None,
+                 plot_pdp='contour',
+                 x_quantile=False, which_classes=None,
+                 figsize=None, ncols=2, plot_params=None,
+                 plot=True,save=True,save_path='pdp2.jpg',
+                 **kwargs):
+    '''
+
+    Parameters
+    ----------
+    model: a fitted sklearn model
+    dataset: pandas DataFrame
+        data set on which the model is trained
+    model_features: list or 1-d array
+        list of model features
+    features: list
+        [feature1, feature2]
+    num_grid_points: list, default=None
+        [feature1 num_grid_points, feature2 num_grid_points]
+    grid_types: list, default=None
+        [feature1 grid_type, feature2 grid_type]
+    percentile_ranges: list, default=None
+        [feature1 percentile_range, feature2 percentile_range]
+    grid_ranges: list, default=None
+        [feature1 grid_range, feature2 grid_range]
+    cust_grid_points: list, default=None
+        [feature1 cust_grid_points, feature2 cust_grid_points]
+    memory_limit: float, (0, 1)
+        fraction of memory to use
+    n_jobs: integer, default=1
+        number of jobs to run in parallel.
+        pdp_interact_out: (list of) instance of PDPInteract
+        for multi-class, it is a list
+    plot_type: str, optional, default='contour'
+        type of the interact plot, can be 'contour' or 'grid'
+    x_quantile: bool, default=False
+        whether to construct x axis ticks using quantiles
+    plot_pdp: bool, default=False
+        whether to plot pdp for each feature
+    which_classes: list, optional, default=None
+        which classes to plot, only use when it is a multi-class problem
+    figsize: tuple or None, optional, default=None
+        size of the figure, (width, height)
+    ncols: integer, optional, default=2
+        number subplot columns, used when it is multi-class problem
+    plot_params: dict or None, optional, default=None
+        parameters for the plot, possible parameters as well as default as below:
+    '''
+
+    pdp_obj = pdp_interact(model=model,dataset=data,model_features=model_features,features=features,
+                           num_grid_points=num_grid_points, grid_types=grid_types,
+                           percentile_ranges=percentile_ranges, grid_ranges=grid_ranges,
+                           cust_grid_points=cust_grid_points, memory_limit=memory_limit,
+                           n_jobs=n_jobs, predict_kwds=predict_kwds, data_transformer=data_transformer)
+
+    fig, axes = pdp_interact_plot(pdp_interact_out=pdp_obj,feature_names=features,
+                                  plot_pdp=plot_pdp,x_quantile=x_quantile,
+                                  which_classes=which_classes, figsize=figsize,
+                                  ncols=ncols, plot_params=plot_params)
+
+    if plot:
+        plt.show()
+
+    if save:
+        fig.savefig(save_path)
+
+    return pdp_obj.count_data

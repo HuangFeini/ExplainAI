@@ -10,7 +10,7 @@ def time_add(data):
     DOY: day of year
 
     :parameter
-    file: data ,  from csv
+    file: pd.Dataframe, data ,  from csv
     :returns
     data:pd.Dataframe
 
@@ -32,6 +32,14 @@ def time_add(data):
     return data
 
 def lag_add(data,sm_lag=7,p_lag=7):
+    '''
+
+    :param data: pd.Dataframe, input data
+    :param sm_lag: int, lagged days of soil moisture
+    :param p_lag: int, lagged days of precipitation
+    :return:
+    data: pd.Dataframe, input data with lagged variables
+    '''
     if sm_lag-0>0:
         sm=data["SWC_F_MDS_1"].tolist()
         lag_col=["SM"+str(x) for x in range(1,sm_lag+1)]

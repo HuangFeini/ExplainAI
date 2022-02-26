@@ -6,7 +6,8 @@ from matplotlib import colors, cm
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
-
+import warnings
+warnings.filterwarnings("ignore")
 
 def _get_grid_points(x, num_grid_points):
     if num_grid_points is None:
@@ -78,7 +79,8 @@ def ice_plot(ice_data, column,frac_to_plot=1.,
              x_quantile=False, plot_pdp=False,
              centered=False, centered_quantile=0.,
              color_by=None, cmap=None,
-             ax=None, pdp_kwargs=None, **kwargs):
+             ax=None, pdp_kwargs=None,
+             plot=True,save=True,save_path='ice.jpg',**kwargs):
     """
     Plot the ICE curves
 
@@ -147,7 +149,7 @@ def ice_plot(ice_data, column,frac_to_plot=1.,
         point_y = plot_ice_data.values[point_x_ilocs, np.arange(point_x_ilocs.size)]
 
     if ax is None:
-        _, ax = plt.subplots()
+        fig, ax = plt.subplots()
 
     if color_by is not None:
         if isinstance(color_by, six.string_types):
@@ -181,6 +183,12 @@ def ice_plot(ice_data, column,frac_to_plot=1.,
     # sns.rugplot(x=x,ax=ax,alpha=0.2)
     sns.rugplot(a=x, ax=ax, alpha=0.2)
 
+
+    if plot:
+        plt.show()
+    if save:
+        fig.savefig(save_path)
+
     return ax
 
 
@@ -206,3 +214,81 @@ def _to_ice_data(data, column, x_s):
     ice_data[column] = np.tile(x_s, data.shape[0])
 
     return ice_data, data_column
+
+
+
+def individual_conditional_exception(data, feature, model, frac_to_plot=1.,
+             plot_points=False, point_kwargs=None,
+             x_quantile=False, plot_pdp=True,
+             centered=False, centered_quantile=0.,
+             color_by=None, cmap=None,
+             ax=None, pdp_kwargs=None,
+            plot=True,save=True,save_path='ice.jpg',**kwargs):
+    '''
+    :param data: the sample data from which to generate ICE curves
+    :type data: ``pandas`` ``DataFrame``
+
+    :param column: the name of the column in ``data`` that will be varied to
+        generate ICE curves
+    :type column: ``str``
+
+    :param predict: the function that generates predictions from the model.
+        Must accept a ``DataFrame`` with the same columns as ``data``.
+    :type predict: callable
+
+    :param num_grid_points: the number of grid points to use for the independent
+        variable of the ICE curves. The independent variable values for the
+        curves will be quantiles of the data.
+
+        If ``None``, the values of the independent variable will be the unique
+        values of ``data[column]``.
+    :type num_grid_points: ``None`` or ``int``
+
+
+    :param frac_to_plot: the fraction of ICE curves to plot.  If less than one,
+        randomly samples columns of ``ice_data`` to plot.
+    :type frac_to_plot: ``float``
+
+    :param plot_points: whether or not to plot the original data points on the
+        ICE curves.  In this case, ``point_kwargs`` is passed as keyword
+        arguments to plot.
+    :type plot_points: ``bool``
+
+    :param x_quantile: if ``True``, the plotted x-coordinates are the quantiles of
+        ``ice_data.index``
+    :type x_quantile: ``bool``
+
+    :param plot_pdp: if ``True``, plot the partial depdendence plot.  In this
+        case, ``pdp_kwargs`` is passed as keyword arguments to ``plot``.
+
+    :param centered: if ``True``, each ICE curve is centered to zero at the
+        percentile closest to ``centered_quantile``.
+    :type centered: ``bool``
+
+    :param color_by:  If a string, color the ICE curve by that level of the
+        column index.
+
+        If callable, color the ICE curve by its return value when applied to a
+        ``DataFrame`` of the column index of ``ice_data``
+    :type color_by: ``None``, ``str``, or callable
+
+    :param cmap:
+    :type cmap: ``matplotlib`` ``Colormap``
+
+    :param ax: the ``Axes`` on which to plot the ICE curves
+    :type ax: ``None`` or ``matplotlib`` ``Axes``
+
+    Other keyword arguments are passed to ``plot``
+
+
+
+    '''
+    ice_obj = ice(data=data, column=feature, predict=model.predict)
+    icep = ice_plot(ice_obj,column=feature,
+                    frac_to_plot=frac_to_plot,plot_points=plot_points, point_kwargs=point_kwargs,
+                    x_quantile=x_quantile, plot_pdp=plot_pdp,centered=centered,
+                    centered_quantile=centered_quantile, color_by=color_by, cmap=cmap,
+                    ax=ax, pdp_kwargs=pdp_kwargs,
+                    plot=plot,save=save,save_path=save_path)
+    return ice_obj
+

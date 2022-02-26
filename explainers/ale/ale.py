@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy
 import pandas as pd
-from matplotlib import gridspec
-
+import warnings
+import os
+warnings.filterwarnings("ignore")
 
 def _ax_title(ax, title, subtitle):
     """
@@ -182,7 +183,7 @@ def _second_order_ale_quant(predictor, train_set, features, quantiles):
             z_up[1][features[0]] = quantiles[0, i]
             z_up[1][features[1]] = quantiles[1, j]
 
-            print(ALE)
+            # print(ALE)
 
             ALE[i, j] += (predictor(z_up[1]) - predictor(z_up[0]) - (predictor(z_low[1]) - predictor(z_low[0]))).sum() / \
                      subset.shape[0]
@@ -294,7 +295,7 @@ def ale_plot(model, train_set, features, plot=False,bins=40, monte_carlo=False, 
                 _first_order_quant_plot(fig.gca(), quantiles, ALE, color="black")
                 _ax_quantiles(fig.gca(), quantiles)
 
-                # return pd.DataFrame({"quantiles":quantiles[1:],"ALE":ALE})
+                return pd.DataFrame({"quantiles":quantiles[1:],"ALE":ALE})
 
 
 
@@ -305,6 +306,8 @@ def ale_plot(model, train_set, features, plot=False,bins=40, monte_carlo=False, 
 
 
                 _ax_boxplot(fig.gca(), quantiles, ALE, color="black")
+
+                return pd.DataFrame({"quantiles": quantiles[1:], "ALE": ALE})
 
         elif len(features) == 2:
             quantiles = [np.percentile(train_set[f], [1. / bins * i * 100 for i in range(0, bins + 1)]) for f in features]
@@ -319,6 +322,9 @@ def ale_plot(model, train_set, features, plot=False,bins=40, monte_carlo=False, 
                 _ax_quantiles(fig.gca(), quantiles[1], twin='y')
                 _ax_title(fig.gca(), "Second-order ALE of features '{0}' and '{1}'".format(features[0], features[1]),
                           "Bins : {0}x{1}".format(len(quantiles[0]) - 1, len(quantiles[1]) - 1))
+
+                # return pd.DataFrame({"quantiles": quantiles[1:], "ALE": ALE})
+                return ALE
 
 
         plt.show()
@@ -347,6 +353,7 @@ def ale_plot(model, train_set, features, plot=False,bins=40, monte_carlo=False, 
                                                         features[0], quantiles)
                         _first_order_quant_plot(fig.gca(), quantiles, mc_ALE, color="#1f77b4", alpha=0.06)
 
+
             if features_classes is None:
                 ALE = _first_order_ale_quant(model.predict if predictor is None else predictor, train_set, features[0],
                                              quantiles)
@@ -371,6 +378,8 @@ def ale_plot(model, train_set, features, plot=False,bins=40, monte_carlo=False, 
 
                 _ax_boxplot(fig.gca(), quantiles, ALE, color="black")
 
+                return pd.DataFrame({"quantiles": quantiles[1:], "ALE": ALE})
+
         elif len(features) == 2:
             quantiles = [np.percentile(train_set[f], [1. / bins * i * 100 for i in range(0, bins + 1)]) for f in
                          features]
@@ -388,5 +397,207 @@ def ale_plot(model, train_set, features, plot=False,bins=40, monte_carlo=False, 
                 _ax_quantiles(fig.gca(), quantiles[1], twin='y')
                 _ax_title(fig.gca(), "Second-order ALE of features '{0}' and '{1}'".format(features[0], features[1]),
                           "Bins : {0}x{1}".format(len(quantiles[0]) - 1, len(quantiles[1]) - 1))
+
+            return pd.DataFrame({"quantiles": quantiles[1:], "ALE": ALE})
+
+def accumulated_local_effect_1d(model, train_set, features, plot=False,bins=40, monte_carlo=False, predictor=None,
+                                save=True, save_path='ale.jpg', **kwargs):
+    """Plots ALE function of specified features based on training set.
+
+    Parameters
+    ----------
+    model : object or function
+        A Python object that contains 'predict' method. It is also possible to define a custom prediction function with 'predictor' parameters that will override 'predict' method of model.
+    train_set : pandas DataFrame
+        Training set on which model was trained.
+    features : string or tuple of string
+        A single or tuple of features' names.
+    bins : int
+        Number of bins used to split feature's space.
+    monte_carlo : boolean
+        Compute and plot Monte-Carlo samples.
+    predictor : function
+        Custom function that overrides 'predict' method of model.
+
+    monte_carlo_rep : int
+        Number of Monte-Carlo replicas.
+    monte_carlo_ratio : float
+        Proportion of randomly selected samples from dataset at each Monte-Carlo replica.
+
+    """
+    if plot:
+        fig = plt.figure()
+        if not isinstance(features, (list, tuple, np.ndarray)):
+            features = np.asarray([features])
+
+        if len(features) == 1:
+            quantiles = np.percentile(train_set[features[0]],
+                                      [1. / bins * i * 100 for i in range(0, bins + 1)])  # Splitted areas of feature
+
+
+
+            if monte_carlo:
+                mc_rep = kwargs.get('monte_carlo_rep', 50)
+                mc_ratio = kwargs.get('monte_carlo_ratio', 0.1)
+                mc_replicates = np.asarray(
+                    [[np.random.choice(range(train_set.shape[0])) for _ in range(int(mc_ratio * train_set.shape[0]))] for _
+                     in range(mc_rep)])
+                for k, rep in enumerate(mc_replicates):
+                    train_set_rep = train_set.iloc[rep, :]
+
+                    mc_ALE = _first_order_ale_quant(model.predict if predictor is None else predictor, train_set_rep,
+                                                    features[0], quantiles)
+                    _first_order_quant_plot(fig.gca(), quantiles, mc_ALE, color="#1f77b4", alpha=0.06)
+
+
+            ALE = _first_order_ale_quant(model.predict if predictor is None else predictor, train_set, features[0],
+                                         quantiles)
+
+
+            _ax_labels(fig.gca(), "Feature '{}'".format(features[0]), "")
+            _ax_title(fig.gca(), "First-order ALE of feature '{0}'".format(features[0]),
+                      "Bins : {0} - Monte-Carlo : {1}".format(len(quantiles) - 1,
+                                                              mc_replicates.shape[0] if monte_carlo else "False"))
+
+
+            _ax_grid(fig.gca(), True)
+            _ax_hist(fig.gca(), train_set[features[0]])
+            _first_order_quant_plot(fig.gca(), quantiles, ALE, color="black")
+            # _ax_quantiles(fig.gca(), quantiles)
+            plt.show()
+
+            return pd.DataFrame({"quantiles":quantiles[1:],"ALE":ALE})
+
+
+
+    if save:
+        fig = plt.figure()
+        if not isinstance(features, (list, tuple, np.ndarray)):
+            features = np.asarray([features])
+
+        if len(features) == 1:
+            quantiles = np.percentile(train_set[features[0]],
+                                      [1. / bins * i * 100 for i in
+                                       range(0, bins + 1)])  # Splitted areas of feature
+
+            if monte_carlo:
+                mc_rep = kwargs.get('monte_carlo_rep', 50)
+                mc_ratio = kwargs.get('monte_carlo_ratio', 0.1)
+                mc_replicates = np.asarray(
+                    [[np.random.choice(range(train_set.shape[0])) for _ in
+                      range(int(mc_ratio * train_set.shape[0]))]
+                     for _
+                     in range(mc_rep)])
+                for k, rep in enumerate(mc_replicates):
+                    train_set_rep = train_set.iloc[rep, :]
+
+                    mc_ALE = _first_order_ale_quant(model.predict if predictor is None else predictor,
+                                                    train_set_rep,
+                                                    features[0], quantiles)
+                    _first_order_quant_plot(fig.gca(), quantiles, mc_ALE, color="#1f77b4", alpha=0.06)
+
+
+            ALE = _first_order_ale_quant(model.predict if predictor is None else predictor, train_set,
+                                         features[0],
+                                         quantiles)
+
+            _ax_labels(fig.gca(), "Feature '{}'".format(features[0]), "")
+            _ax_title(fig.gca(), "First-order ALE of feature '{0}'".format(features[0]),
+                      "Bins : {0} - Monte-Carlo : {1}".format(len(quantiles) - 1,
+                                                              mc_replicates.shape[
+                                                                  0] if monte_carlo else "False"))
+
+            _ax_grid(fig.gca(), True)
+            _ax_hist(fig.gca(), train_set[features[0]])
+            _first_order_quant_plot(fig.gca(), quantiles, ALE, color="black")
+            # _ax_quantiles(fig.gca(), quantiles)
+
+
+            fig.savefig(save_path)
+
+        return pd.DataFrame({"quantiles": quantiles[1:], "ALE": ALE})
+
+def accumulated_local_effect_2d(model, train_set, features, plot=False, bins=40,
+                                        predictor=None, save=True, save_path='ale2.jpg', **kwargs):
+    """Plots ALE function of specified features based on training set.
+
+    Parameters
+    ----------
+    model : object or function
+        A Python object that contains 'predict' method. It is also possible to define a custom prediction function with 'predictor' parameters that will override 'predict' method of model.
+    train_set : pandas DataFrame
+        Training set on which model was trained.
+    features : string or tuple of string
+        A single or tuple of features' names.
+    bins : int
+        Number of bins used to split feature's space.
+    monte_carlo : boolean
+        Compute and plot Monte-Carlo samples.
+    predictor : function
+        Custom function that overrides 'predict' method of model.
+
+    monte_carlo_rep : int
+        Number of Monte-Carlo replicas.
+    monte_carlo_ratio : float
+        Proportion of randomly selected samples from dataset at each Monte-Carlo replica.
+
+    """
+    if plot:
+        fig = plt.figure()
+        if not isinstance(features, (list, tuple, np.ndarray)):
+            features = np.asarray([features])
+
+
+        if len(features) == 2:
+            quantiles = [np.percentile(train_set[f], [1. / bins * i * 100 for i in range(0, bins + 1)]) for f in features]
+
+
+            ALE = _second_order_ale_quant(model.predict if predictor is None else predictor, train_set, features,
+                                          quantiles)
+            _ax_scatter(fig.gca(), train_set.loc[:, features])
+            _second_order_quant_plot(fig.gca(), quantiles, ALE)
+            _ax_labels(fig.gca(), "Feature '{}'".format(features[0]), "Feature '{}'".format(features[1]))
+            # _ax_quantiles(fig.gca(), quantiles[0], twin='x')
+            # _ax_quantiles(fig.gca(), quantiles[1], twin='y')
+            _ax_title(fig.gca(), "Second-order ALE of features '{0}' and '{1}'".format(features[0], features[1]),
+                      "Bins : {0}x{1}".format(len(quantiles[0]) - 1, len(quantiles[1]) - 1))
+
+            df=pd.DataFrame(ALE,index=quantiles[1:],columns=quantiles[:1])
+            plt.show()
+
+            return df
+
+
+
+
+    if save:
+        fig = plt.figure()
+        if not isinstance(features, (list, tuple, np.ndarray)):
+            features = np.asarray([features])
+
+        if len(features) == 2:
+            quantiles = [np.percentile(train_set[f], [1. / bins * i * 100 for i in range(0, bins + 1)]) for f in
+                         features]
+
+            ALE = _second_order_ale_quant(model.predict if predictor is None else predictor, train_set, features,
+                                          quantiles)
+            _ax_scatter(fig.gca(), train_set.loc[:, features])
+            _second_order_quant_plot(fig.gca(), quantiles, ALE)
+            _ax_labels(fig.gca(), "Feature '{}'".format(features[0]), "Feature '{}'".format(features[1]))
+            # _ax_quantiles(fig.gca(), quantiles[0], twin='x')
+            # _ax_quantiles(fig.gca(), quantiles[1], twin='y')
+            _ax_title(fig.gca(), "Second-order ALE of features '{0}' and '{1}'".format(features[0], features[1]),
+                      "Bins : {0}x{1}".format(len(quantiles[0]) - 1, len(quantiles[1]) - 1))
+
+            # return pd.DataFrame({"quantiles": quantiles[1:], "ALE": ALE})
+
+            fig.savefig(save_path)
+
+            df = pd.DataFrame(ALE, index=quantiles[1:], columns=quantiles[:1])
+
+            return df
+
+
+
 
 

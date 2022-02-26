@@ -1,5 +1,6 @@
 import pandas as pd
-
+import warnings
+warnings.filterwarnings("ignore")
 
 def get_x(data,target):
     x=data.drop(target,axis=1)

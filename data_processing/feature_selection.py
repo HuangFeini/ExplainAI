@@ -1,12 +1,6 @@
 import pandas as pd
 from sklearn import ensemble
 
-
-
-
-
-
-
 class feature_selection():
     '''
     Using sequential backward selection (SBS) to select optimal features.
@@ -26,9 +20,14 @@ class feature_selection():
 
 
         FeaList=self.data.columns.tolist()
-        FeaList.remove(self.target)
+        if self.target in FeaList:
+            FeaList.remove(self.target)
+            x = self.data.drop(self.target, axis=1)
+        else:
+            x = self.data
+
         NFeaFrame=pd.DataFrame(columns=['ElimFeature','score'])
-        x = self.data.drop(self.target, axis=1)
+
         for i in range(1,self.data.shape[1]):
             RF=ensemble.RandomForestRegressor(n_estimators=n_estimators)
             y=self.data[self.target]
@@ -45,8 +44,6 @@ class feature_selection():
             xm=minFea.tolist()[0]
             NFeaFrame.loc[i]=[xm,score]
             x=x.drop(minFea, axis=1)
-
-
 
         return NFeaFrame
 

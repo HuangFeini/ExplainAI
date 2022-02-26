@@ -25,11 +25,9 @@ class split_data():
         split=round(length*self.part)
         train=self.data[0:split]
         test=self.data[split:length]
-        y_train=train[self.target]
-        x_train=train.drop(self.target,axis=1)
-        y_test=test[self.target]
-        x_test=test.drop(self.target,axis=1)
-        return x_train,y_train,x_test,y_test
+
+        return train,test
+
 
     def split3(self):
         length=self.data.shape[0]
@@ -41,11 +39,16 @@ class split_data():
 
         test=self.data[split2:length]
 
-        y_train = train[self.target]
-        x_train = train.drop(self.target, axis=1)
-        y_valid = valid[self.target]
-        x_valid = valid.drop(self.target, axis=1)
-        y_test = test[self.target]
-        x_test = test.drop(self.target, axis=1)
 
-        return x_train,y_train,x_valid,y_valid,x_test,y_test
+        return train, valid, test
+
+    def split_xy(self):
+        length=self.data.shape[0]
+        split=round(length*self.part)
+        train=self.data[0:split]
+        test=self.data[split:length]
+        y_train=train[self.target]
+        x_train=train.drop(self.target,axis=1)
+        y_test=test[self.target]
+        x_test=test.drop(self.target,axis=1)
+        return x_train,y_train, x_test,y_test

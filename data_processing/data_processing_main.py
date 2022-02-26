@@ -1,11 +1,33 @@
-import pandas as pd
+
 from ..data_processing.add_variables import time_add,lag_add
 from ..data_processing.split_data import split_data
 from ..data_processing.data_cleaning import data_cleaning
 from ..data_processing.feature_selection import feature_selection
 
 class data_processing_main():
-    def __init__(self, data,time_add,lag_add,elim_SM_nan, drop_ir, drop_nan_feature,part,n_estimator,sbs):
+    '''
+    the integrated procedures for data processing.
+    `:parameter`
+
+    `data:` pd.Dataframe,input data
+
+    `target:` string, predicted target column name
+
+    `time_add:` bool, whether time_add
+
+    `lag_add:`bool, whether lag_add
+
+    `elim_SM_nan:` bool, whether elim_SM_nan
+
+    `drop_ir:` eliminate data of irrelevant records in FLUXNET,like percentiles, quality index, RANDUNC, se, sd...
+    `drop_nan_feature:`Eliminate the features with too many(30%) Nan.
+    `part:`part of split_data
+    `n_estimator:`sequential backward selection using random forest, n_estimator of random forest
+    `sbs:`whether use sbs
+
+    `split:` int 2 or int 3, if 2, splite data to training set and testing set; if 3, training set, validating set and testing set
+    '''
+    def __init__(self, data,target,time_add,lag_add,elim_SM_nan, drop_ir, drop_nan_feature,part,n_estimator,sbs,split):
         self.data=data
         self.time_add=time_add
         self.lag_add=lag_add
@@ -15,9 +37,8 @@ class data_processing_main():
         self.part=part
         self.n_estimator=n_estimator
         self.sbs=sbs
-
-
-
+        self.target=target
+        self.split=split
 
 
     def total(self):
@@ -39,9 +60,12 @@ class data_processing_main():
             fa3=data_cleaning(self.data)
             self.data=fa3.drop_nan_feature()
         if self.sbs:
-            sd=split_data(self.data,part=self.part)
-            train,test=sd.split()
-            fb=feature_selection(train)
+            sd=split_data(self.data,target=self.target,part=self.part)
+            if self.split == str(2) or int(2):
+                train,test=sd.split()
+            elif self.split == str(3) or int(3):
+                train, valid, test = sd.split3()
+            fb=feature_selection(train,target=self.target)
 
             feature_sequence=fb.sbs_rf(n_estimators=self.n_estimator)
 
@@ -51,21 +75,3 @@ class data_processing_main():
 
 
 
-
-# if __name__ == '__main__':
-#
-#     file='E:\\xai\\flx_data\\FLX_CN-Ha2_FLUXNET2015_FULLSET_DD_2003-2005_1-4.csv'
-#     data=pd.read_csv(file,header=0)
-#
-#     d=data_processing_main(data=data,
-#                           time_add=1,
-#                            lag_add=1,
-#                           elim_SM_nan=1,
-#                           drop_ir=1,
-#                           drop_nan_feature=1,
-#                           part=0.7,
-#                           n_estimator=10,
-#                           sbs=True)
-#     dd,ss=d.total()
-#     dd.to_csv("dd.csv")
-#     ss.to_csv('ss.csv')
