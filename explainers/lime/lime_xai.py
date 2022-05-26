@@ -144,7 +144,7 @@ def lime_xai(m,x,y_ob,instance,n=10000,num_bins=25,
 
     lime_res_df=pd.DataFrame({"feature":x.columns.to_list(),"lime_var":lime_beta,"value":x.iloc[instance,:]})
 
-    fig = plt.figure()
+    plt.figure()
     # plt.barh(lime_res_df["feature"], lime_res_df["lime_var"])
 
     ystick=[]

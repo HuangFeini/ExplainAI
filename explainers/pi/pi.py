@@ -28,7 +28,7 @@ def permutation_importance(estimator,feature_names=None,plot=True,save=True,save
 
     return pi
 
-def permutation_importance_xai(m,f,x,y,rmse):#x是训练集的,y是对应的
+def permutation_importance_xai(m,f,x,y,rmse,plot=True,save=True,save_path='pi.jpg'):#x是训练集的,y是对应的
     result=[]
     for feauture in f:
         x_scramble=x.copy()
@@ -37,21 +37,21 @@ def permutation_importance_xai(m,f,x,y,rmse):#x是训练集的,y是对应的
         y_scramble=m.predict(x_scramble)
         rmse_scramble=mean_squared_error(y_scramble, y)
         result.append({'feature':feauture,'pi':abs(rmse-rmse_scramble)})
-    result_df=pd.DataFrame(result).sort_values(by='pi',ascending=True)
+    # result_df=pd.DataFrame(result).sort_values(by='pi',ascending=True)
+    result_df = pd.DataFrame(result)
+    print(result_df)
 
     import matplotlib.pyplot as plt
     fig = plt.figure()
-    ax = fig.add_axes([0, 0, 1, 1])
-    ax.set_ylabel('Increase in RMSE')
-    ax.set_xlabel('Predictor')
-    ax.set_title('Permutation Feature Importance')
+    plt.barh(result_df['feature'],result_df['pi'])
+    plt.title('Permutation Feature Importance')
 
-    predictors = result_df.feature
-    y_pos = range(len(predictors))
-    scores = result_df.pi
-    ax.bar(predictors, scores)
-    plt.xticks(y_pos, predictors, rotation=45)
-    plt.show()
+
+    if plot:
+        plt.show()
+
+    if save:
+        fig.savefig(save_path)
 
 
     return result_df

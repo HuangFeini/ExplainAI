@@ -1,9 +1,9 @@
-
 from sklearn import tree, svm
-from sklearn.metrics import r2_score,mean_absolute_error,mean_squared_error,mean_squared_log_error
+# from sklearn.metrics import r2_score,mean_absolute_error,mean_squared_error, mean_squared_log_error
+from sklearn.metrics import r2_score,mean_absolute_error,mean_squared_error #,mean_squared_log_error
 from sklearn import linear_model
 from sklearn import neighbors,ensemble
-
+import numpy as np
 def make_model(modeltype, x_train, y_train, x_test, y_test):
     def func(clf,x_train,y_train,x_test,y_test):
         clf.fit(x_train,y_train)
@@ -11,7 +11,7 @@ def make_model(modeltype, x_train, y_train, x_test, y_test):
         res={"r2":r2_score(y_predict,y_test),
              "MSE":mean_squared_error(y_predict,y_test),
              "MAE":mean_absolute_error(y_predict,y_test),
-             "RMSE":mean_squared_log_error(y_predict,y_test)}
+             "RMSE":np.sqrt(mean_squared_error(y_predict,y_test))}
 
         return clf,res,y_predict
 

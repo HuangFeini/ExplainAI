@@ -363,7 +363,7 @@ def pdp_plot(pdp_isolate_out, feature_name, center=True, plot_pts_dist=False, pl
             pdp_plot_data.append(pdp_isolate_out[n_class])
 
     # set up graph parameters
-    width, height = 15, 9.5
+    width, height = 6,5
     nrows = 1
     if len(pdp_plot_data) > 1:
         nrows = int(np.ceil(len(pdp_plot_data) * 1.0 / ncols))
@@ -378,15 +378,15 @@ def pdp_plot(pdp_isolate_out, feature_name, center=True, plot_pts_dist=False, pl
         plot_params = dict()
 
     # construct the chart
-    fig = plt.figure(figsize=(width, height))
+    fig = plt.figure()#figsize=(width, height)
     outer_grid = GridSpec(2, 1, wspace=0.0, hspace=0.1, height_ratios=[2, height - 2])
 
     # plot title
-    title_ax = plt.subplot(outer_grid[0])
-    fig.add_subplot(title_ax)
-    title = plot_params.get('title', 'PDP for feature "%s"' % feature_name)
-    subtitle = plot_params.get('subtitle', "Number of unique grid points: %d" % n_grids)
-    _plot_title(title=title, subtitle=subtitle, title_ax=title_ax, plot_params=plot_params)
+    # title_ax = plt.subplot(outer_grid[0])
+    # fig.add_subplot(title_ax)
+    # title = plot_params.get('title', 'PDP for feature "%s"' % feature_name)
+    # subtitle = plot_params.get('subtitle', "Number of unique grid points: %d" % n_grids)
+    # _plot_title(title=title, subtitle=subtitle, title_ax=title_ax, plot_params=plot_params)
 
     # plot pdp
     feature_type = pdp_plot_data[0].feature_type
@@ -418,7 +418,7 @@ def pdp_plot(pdp_isolate_out, feature_name, center=True, plot_pts_dist=False, pl
             _pdp_plot(pdp_isolate_out=pdp_plot_data[0], feature_name=feature_name_adj, pdp_ax=_pdp_ax,
                       count_ax=_count_ax, **pdp_plot_params)
         else:
-            pdp_ax = plt.subplot(outer_grid[1])
+            pdp_ax = plt.subplot()
             fig.add_subplot(pdp_ax)
             _pdp_plot(pdp_isolate_out=pdp_plot_data[0], feature_name=feature_name_adj, pdp_ax=pdp_ax,
                       count_ax=None, **pdp_plot_params)
@@ -450,7 +450,10 @@ def pdp_plot(pdp_isolate_out, feature_name, center=True, plot_pts_dist=False, pl
                 _pdp_plot(pdp_isolate_out=pdp_plot_data[inner_idx], feature_name=feature_name_adj, pdp_ax=ax,
                           count_ax=None, **pdp_plot_params)
 
-    axes = {'title_ax': title_ax, 'pdp_ax': pdp_ax}
+    # axes = {'title_ax': title_ax, 'pdp_ax': pdp_ax}
+    axes = {'pdp_ax': pdp_ax}
+
+    plt.title('PDP for feature "%s"' % feature_name)
 
     plt.show()
     return fig, axes
@@ -609,7 +612,7 @@ def pdp_interact(model, dataset, model_features, features, num_grid_points=None,
     return pdp_interact_out
 
 
-def pdp_interact_plot(pdp_interact_out, feature_names, plot_type='contour', x_quantile=False, plot_pdp=False,
+def pdp_interact_plot(pdp_interact_out, feature_names, plot_type='contour', x_quantile=False, plot_pdp=True,
                       which_classes=None, figsize=None, ncols=2, plot_params=None):
     """PDP interact
 
@@ -719,6 +722,8 @@ def pdp_interact_plot(pdp_interact_out, feature_names, plot_type='contour', x_qu
                                           which_classes=[1, 2, 3])
 
     """
+    
+    
 
     pdp_interact_plot_data = _make_list(x=pdp_interact_out)
     if which_classes is not None:
@@ -752,31 +757,35 @@ def pdp_interact_plot(pdp_interact_out, feature_names, plot_type='contour', x_qu
     if plot_params is None:
         plot_params = dict()
 
-    fig = plt.figure(figsize=(width, height))
-    outer_grid = GridSpec(2, 1, wspace=0.0, hspace=0.1, height_ratios=[title_height, height - title_height])
-    title_ax = plt.subplot(outer_grid[0])
-    fig.add_subplot(title_ax)
+    fig = plt.figure()
+    # outer_grid = GridSpec(2, 1, wspace=0.0, hspace=0.0, height_ratios=[title_height, height - title_height])
+
 
     n_grids = [len(pdp_interact_plot_data[0].feature_grids[0]), len(pdp_interact_plot_data[0].feature_grids[1])]
     title = plot_params.get('title', 'PDP interact for "%s" and "%s"' % (feature_names[0], feature_names[1]))
-    subtitle = plot_params.get('subtitle', "Number of unique grid points: (%s: %d, %s: %d)"
-                               % (feature_names[0], n_grids[0], feature_names[1], n_grids[1]))
+    plt.title(title)
+    # subtitle = plot_params.get('subtitle', "Number of unique grid points: (%s: %d, %s: %d)"
+    #                            % (feature_names[0], n_grids[0], feature_names[1], n_grids[1]))
 
-    _plot_title(title=title, subtitle=subtitle, title_ax=title_ax, plot_params=plot_params)
 
     inter_params = {'plot_type': plot_type, 'x_quantile': x_quantile, 'plot_params': plot_params}
     if num_charts == 1:
+
         feature_names_adj = feature_names
         if pdp_interact_plot_data[0].which_class is not None:
             feature_names_adj = ['%s (class %d)' % (
                 feature_names[0], pdp_interact_plot_data[0].which_class), feature_names[1]]
         if plot_pdp:
-            inner_grid = GridSpecFromSubplotSpec(2, 2, subplot_spec=outer_grid[1], height_ratios=[0.5, 7],
-                                                 width_ratios=[0.5, 7], hspace=inner_hspace, wspace=inner_wspace)
-            inter_ax = _pdp_inter_three(pdp_interact_out=pdp_interact_plot_data[0], chart_grids=inner_grid,
-                                        fig=fig, feature_names=feature_names_adj, **inter_params)
+
+            inter_ax = plt.subplot()  # outer_grid[1]
+            fig.add_subplot(inter_ax)
+            _pdp_inter_one(pdp_interact_out=pdp_interact_plot_data[0], inter_ax=inter_ax, norm=None,
+                           feature_names=feature_names_adj, **inter_params)
+
         else:
-            inter_ax = plt.subplot(outer_grid[1])
+
+
+            inter_ax = plt.subplot()#outer_grid[1]
             fig.add_subplot(inter_ax)
             _pdp_inter_one(pdp_interact_out=pdp_interact_plot_data[0], inter_ax=inter_ax, norm=None,
                            feature_names=feature_names_adj, **inter_params)
@@ -790,12 +799,16 @@ def pdp_interact_plot(pdp_interact_out, feature_names, plot_type='contour', x_qu
             feature_names_adj = ['%s (class %d)' % (
                 feature_names[0], pdp_interact_plot_data[inner_idx].which_class), feature_names[1]]
             if plot_pdp:
-                inner_inner_grid = GridSpecFromSubplotSpec(2, 2, subplot_spec=inner_grid[inner_idx],
-                                                           height_ratios=[0.5, 7], width_ratios=[0.5, 7],
-                                                           hspace=inner_hspace, wspace=inner_wspace)
-                inner_inter_ax = _pdp_inter_three(
-                    pdp_interact_out=pdp_interact_plot_data[inner_idx], chart_grids=inner_inner_grid, fig=fig,
-                    feature_names=feature_names_adj, **inter_params)
+                print('yes')
+
+                # inner_inter_ax = _pdp_inter_three(
+                #     pdp_interact_out=pdp_interact_plot_data[inner_idx],fig=fig,
+                #     feature_names=feature_names_adj, **inter_params)
+
+                inner_inter_ax = plt.subplot(inner_grid[inner_idx])
+                fig.add_subplot(inner_inter_ax)
+                _pdp_inter_one(pdp_interact_out=pdp_interact_plot_data[inner_idx], inter_ax=inner_inter_ax,
+                               norm=None, feature_names=feature_names_adj, **inter_params)
             else:
                 inner_inter_ax = plt.subplot(inner_grid[inner_idx])
                 fig.add_subplot(inner_inter_ax)
@@ -803,9 +816,9 @@ def pdp_interact_plot(pdp_interact_out, feature_names, plot_type='contour', x_qu
                                norm=None, feature_names=feature_names_adj, **inter_params)
             inter_ax.append(inner_inter_ax)
 
-    axes = {'title_ax': title_ax, 'pdp_inter_ax': inter_ax}
 
-    # plt.show()
+    axes = {'pdp_ax': inter_ax}
+
 
     return fig, axes
 
@@ -957,6 +970,7 @@ def partial_dependence_plot_2d(model,data,model_features,features,num_grid_point
     plot_params: dict or None, optional, default=None
         parameters for the plot, possible parameters as well as default as below:
     '''
+    
 
     pdp_obj = pdp_interact(model=model,dataset=data,model_features=model_features,features=features,
                            num_grid_points=num_grid_points, grid_types=grid_types,

@@ -167,7 +167,9 @@ def ice_plot(ice_data, column,frac_to_plot=1.,
             c = m.to_rgba(color_raw)
             ax.plot(x, ice_curve, c=c, zorder=0, **kwargs)
     else:
-        ax.plot(x, plot_ice_data, zorder=0, c='grey', linewidth=0.5, **kwargs)
+        # dataframe might be attributeerror in plot trying to set the .values to fix this bug
+        # ax.plot(x, plot_ice_data, zorder=0, c='grey', linewidth=0.5, **kwargs)
+        ax.plot(x, plot_ice_data.values, zorder=0, c='grey', linewidth=0.5, **kwargs)
 
     if plot_points:
         ax.scatter(point_x, point_y, zorder=10, s=5, c='black',**(point_kwargs or {}))
@@ -182,6 +184,7 @@ def ice_plot(ice_data, column,frac_to_plot=1.,
     ax.set_xlabel(column)
     # sns.rugplot(x=x,ax=ax,alpha=0.2)
     sns.rugplot(a=x, ax=ax, alpha=0.2)
+    plt.title("ICE of feature '{0}'".format(column))
 
 
     if plot:

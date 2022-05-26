@@ -162,9 +162,9 @@ def _pdp_plot(pdp_isolate_out, feature_name, center, plot_lines, frac_to_plot, c
         else:
             _draw_pdp_countplot(count_data=count_data, count_ax=count_ax, pdp_ax=pdp_ax, feature_type=feature_type,
                                 display_columns=display_columns, plot_params=plot_params)
-        count_ax.set_xlabel(feature_name, fontsize=11, fontdict={'family': font_family})
+        count_ax.set_xlabel('Feature '+str(feature_name),  fontdict={'family': font_family})#fontsize=15,
     else:
-        pdp_ax.set_xlabel(feature_name, fontsize=11, fontdict={'family': font_family})
+        pdp_ax.set_xlabel('Feature '+str(feature_name), fontdict={'family': font_family})#fontsize=15,
 
     # show grid percentile info
     if show_percentile and len(percentile_info) > 0:
@@ -291,6 +291,7 @@ def _pdp_inter_one(pdp_interact_out, feature_names, plot_type, inter_ax, x_quant
         False when it is called by _pdp_inter_three
 
     """
+
     cmap = plot_params.get('cmap', 'viridis')
     inter_fill_alpha = plot_params.get('inter_fill_alpha', 0.8)
     fontsize = plot_params.get('inter_fontsize', 9)
@@ -330,6 +331,7 @@ def _pdp_inter_one(pdp_interact_out, feature_names, plot_type, inter_ax, x_quant
             # for numeric not quantile
             X, Y = np.meshgrid(pdp_interact_out.feature_grids[0], pdp_interact_out.feature_grids[1])
         im = _pdp_contour_plot(X=X, Y=Y, **inter_params)
+
     elif plot_type == 'grid':
         im = _pdp_inter_grid(**inter_params)
     else:
@@ -340,6 +342,7 @@ def _pdp_inter_one(pdp_interact_out, feature_names, plot_type, inter_ax, x_quant
         _axes_modify(font_family=font_family, ax=inter_ax, grid=True)
 
         if pdp_interact_out.feature_types[0] != 'numeric' or x_quantile:
+
             inter_ax.set_xticks(range(len(pdp_interact_out.pdp_isolate_outs[0].display_columns)))
             inter_ax.set_xticklabels(pdp_interact_out.pdp_isolate_outs[0].display_columns)
 
@@ -350,6 +353,7 @@ def _pdp_inter_one(pdp_interact_out, feature_names, plot_type, inter_ax, x_quant
         inter_ax.set_xlabel(feature_names[0], fontsize=12, fontdict={'family': font_family})
         inter_ax.set_ylabel(feature_names[1], fontsize=12, fontdict={'family': font_family})
 
+
         # insert colorbar
         inter_ax_divider = make_axes_locatable(inter_ax)
         cax = inter_ax_divider.append_axes("right", size="5%", pad="2%")
@@ -358,11 +362,17 @@ def _pdp_inter_one(pdp_interact_out, feature_names, plot_type, inter_ax, x_quant
             boundaries = [round(v, 3) for v in np.linspace(norm.vmin, norm.vmax, cb_num_grids)]
             cb = plt.colorbar(im, cax=cax, boundaries=boundaries)
         else:
-            cb = plt.colorbar(im, cax=cax, format='%.3f')
+            cb = plt.colorbar(im, cax=cax, format='%.1f')
         _axes_modify(font_family=font_family, ax=cax, right=True, grid=True)
         cb.outline.set_visible(False)
 
-    inter_ax.tick_params(which="minor", bottom=False, left=False)
+    inter_ax.set_frame_on(False)
+
+    inter_ax.spines['right'].set_visible(False)
+
+
+    # inter_ax.tick_params(which="minor", bottom=False, left=False)
+
     return im
 
 
@@ -389,7 +399,7 @@ def _pdp_xy(pdp_values, vmean, pdp_ax, ticklabels, feature_name, cmap, norm, plo
     """
 
     font_family = plot_params.get('font_family', 'Arial')
-    fontsize = plot_params.get('inter_fontsize', 9)
+    fontsize = plot_params.get('inter_fontsize', 20)
     inter_fill_alpha = plot_params.get('inter_fill_alpha', 0.8)
 
     pdp_ax.imshow(np.expand_dims(pdp_values, int(y)), cmap=cmap, norm=norm, origin='lower', alpha=inter_fill_alpha)
@@ -412,7 +422,7 @@ def _pdp_xy(pdp_values, vmean, pdp_ax, ticklabels, feature_name, cmap, norm, plo
     if y:
         pdp_ax.set_yticks(range(len(ticklabels)))
         pdp_ax.set_yticklabels(ticklabels)
-        pdp_ax.set_ylabel(feature_name, fontdict={'family': font_family, 'fontsize': 12})
+        pdp_ax.set_ylabel(feature_name, fontdict={'family': font_family, 'fontsize': 30})
         if plot_type == 'contour':
             pdp_ax.get_yaxis().set_label_position('right')
         pdp_ax.get_xaxis().set_visible(False)
@@ -420,7 +430,7 @@ def _pdp_xy(pdp_values, vmean, pdp_ax, ticklabels, feature_name, cmap, norm, plo
         pdp_ax.set_xticks(range(len(ticklabels)))
         pdp_ax.get_xaxis().tick_top()
         pdp_ax.set_xticklabels(ticklabels)
-        pdp_ax.set_xlabel(feature_name, fontdict={'family': font_family, 'fontsize': 12})
+        pdp_ax.set_xlabel(feature_name, fontdict={'family': font_family, 'fontsize': 30})
         if plot_type == 'grid':
             pdp_ax.get_xaxis().set_label_position('top')
         pdp_ax.get_yaxis().set_visible(False)
@@ -430,7 +440,7 @@ def _pdp_xy(pdp_values, vmean, pdp_ax, ticklabels, feature_name, cmap, norm, plo
     pdp_ax.tick_params(axis='both', which='major', labelsize=10, labelcolor='#424242', colors='#9E9E9E')
 
 
-def _pdp_inter_three(pdp_interact_out, feature_names, plot_type, chart_grids, x_quantile, fig, plot_params):
+def _pdp_inter_three(pdp_interact_out, feature_names, plot_type, x_quantile, fig, plot_params):
     """Plot PDP interact with pdp isolate color bar
 
     Parameters
@@ -441,51 +451,37 @@ def _pdp_inter_three(pdp_interact_out, feature_names, plot_type, chart_grids, x_
     cmap = plot_params.get('cmap', 'viridis')
     font_family = plot_params.get('font_family', 'Arial')
 
-    pdp_x_ax = fig.add_subplot(chart_grids[1])
-    pdp_y_ax = fig.add_subplot(chart_grids[2])
-    inter_ax = fig.add_subplot(chart_grids[3], sharex=pdp_x_ax, sharey=pdp_y_ax)
+    inter_ax = fig.add_subplot()
+
 
     pdp_x = copy.deepcopy(pdp_interact_out.pdp_isolate_outs[0].pdp)
     pdp_y = copy.deepcopy(pdp_interact_out.pdp_isolate_outs[1].pdp)
     pdp_inter = copy.deepcopy(pdp_interact_out.pdp['preds'].values)
     pdp_values = np.concatenate((pdp_x, pdp_y, pdp_inter))
+
+
+
+
+
     pdp_min, pdp_max = np.min(pdp_values), np.max(pdp_values)
 
     norm = mpl.colors.Normalize(vmin=pdp_min, vmax=pdp_max)
     vmean = norm.vmin + (norm.vmax - norm.vmin) * 0.5
     feature_grids = pdp_interact_out.feature_grids
 
-    pdp_xy_params = {'cmap': cmap, 'norm': norm, 'vmean': vmean, 'plot_params': plot_params, 'plot_type': plot_type}
-    _pdp_xy(pdp_values=pdp_x, pdp_ax=pdp_x_ax, ticklabels=pdp_interact_out.pdp_isolate_outs[0].display_columns,
-            feature_name=feature_names[0], y=False, **pdp_xy_params)
-    _pdp_xy(pdp_values=pdp_y, pdp_ax=pdp_y_ax, ticklabels=pdp_interact_out.pdp_isolate_outs[1].display_columns,
-            feature_name=feature_names[1], y=True, **pdp_xy_params)
 
     im = _pdp_inter_one(pdp_interact_out=pdp_interact_out, feature_names=feature_names, plot_type=plot_type,
-                        inter_ax=inter_ax, x_quantile=x_quantile, plot_params=plot_params, norm=norm, ticks=False)
+                        inter_ax=inter_ax, x_quantile=x_quantile, plot_params=plot_params, norm=norm, ticks=True)
 
     inter_ax.set_frame_on(False)
-    plt.setp(inter_ax.get_xticklabels(), visible=False)
-    plt.setp(inter_ax.get_yticklabels(), visible=False)
-    inter_ax.tick_params(which="minor", bottom=False, left=False)
-    inter_ax.tick_params(which="major", bottom=False, left=False)
-
-    # insert colorbar
-    if plot_type == 'grid':
-        cax = inset_axes(inter_ax, width="100%", height="100%", loc='right', bbox_to_anchor=(1.05, 0., 0.05, 1),
-                         bbox_transform=inter_ax.transAxes, borderpad=0)
-        cb_num_grids = np.max([np.min([len(feature_grids[0]), len(feature_grids[1]), 8]), 8])
-        boundaries = [round(v, 3) for v in np.linspace(norm.vmin, norm.vmax, cb_num_grids)]
-        cb = plt.colorbar(im, cax=cax, boundaries=boundaries)
-    else:
-        cax = inset_axes(inter_ax, width="5%", height="80%", loc='right')
-        cb = plt.colorbar(im, cax=cax, format='%.3f')
-    _axes_modify(font_family=font_family, ax=cax, right=True, grid=True)
-    cb.outline.set_visible(False)
 
 
-    return {
-        '_pdp_x_ax': pdp_x_ax,
-        '_pdp_y_ax': pdp_y_ax,
-        '_pdp_inter_ax': inter_ax
-    }
+    inter_ax.set_yticks([])
+    return inter_ax
+
+
+
+
+    # return {
+    #     '_pdp_inter_ax': inter_ax
+    # }

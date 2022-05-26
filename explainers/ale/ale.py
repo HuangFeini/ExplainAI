@@ -20,7 +20,8 @@ def _ax_title(ax, title, subtitle):
     subtitle : string
         Sub-title for figure.
     """
-    ax.set_title(title + "\n" + subtitle)
+    # ax.set_title(title + "\n" + subtitle)
+    ax.set_title(title)
 
 
 # fig.suptitle(subtitle, fontsize=10, color="#919191")
@@ -285,9 +286,11 @@ def ale_plot(model, train_set, features, plot=False,bins=40, monte_carlo=False, 
 
 
                 _ax_labels(fig.gca(), "Feature '{}'".format(features[0]), "")
-                _ax_title(fig.gca(), "First-order ALE of feature '{0}'".format(features[0]),
-                          "Bins : {0} - Monte-Carlo : {1}".format(len(quantiles) - 1,
-                                                                  mc_replicates.shape[0] if monte_carlo else "False"))
+                # _ax_title(fig.gca(), "First-order ALE of feature '{0}'".format(features[0]),
+                #           "Bins : {0} - Monte-Carlo : {1}".format(len(quantiles) - 1,
+                #                                                   mc_replicates.shape[0] if monte_carlo else "False"))
+
+                _ax_title(fig.gca(), "First-order ALE of feature '{0}'".format(features[0]))
 
 
                 _ax_grid(fig.gca(), True)
