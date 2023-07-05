@@ -28,10 +28,10 @@ def permutation_importance(estimator,feature_names=None,plot=True,save=True,save
 
     return pi
 
-def permutation_importance_xai(m,f,x,y, plot=True,save=True,save_path='pi.jpg', seed=None):#x是训练集的,y是对应的
+def permutation_importance_xai(m,f,x,y, plot=True,save=True,save_path='pi.jpg', seed=None, n_repeats=5):#x是训练集的,y是对应的
     result={}
     from sklearn.inspection import permutation_importance
-    i = permutation_importance(m, x, y, random_state=seed)
+    i = permutation_importance(m, x, y, random_state=seed, n_repeats=n_repeats)
     result['feature'] = f
     result['pi'] = i.importances_mean
     result_df = pd.DataFrame(result)
