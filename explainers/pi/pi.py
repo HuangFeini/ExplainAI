@@ -28,22 +28,19 @@ def permutation_importance(estimator,feature_names=None,plot=True,save=True,save
 
     return pi
 
-def permutation_importance_xai(m,f,x,y,rmse,plot=True,save=True,save_path='pi.jpg'):#x是训练集的,y是对应的
-    result=[]
-    for feauture in f:
-        x_scramble=x.copy()
-        x_scramble[feauture]=x[feauture].sample(frac=1).values
-        from sklearn.metrics import mean_squared_error
-        y_scramble=m.predict(x_scramble)
-        rmse_scramble=mean_squared_error(y_scramble, y)
-        result.append({'feature':feauture,'pi':abs(rmse-rmse_scramble)})
-    # result_df=pd.DataFrame(result).sort_values(by='pi',ascending=True)
+def permutation_importance_xai(m,f,x,y, plot=True,save=True,save_path='pi.jpg', seed=None):#x是训练集的,y是对应的
+    result={}
+    from sklearn.inspection import permutation_importance
+    i = permutation_importance(m, x, y, random_state=seed)
+    result['feature'] = f
+    result['pi'] = i.importances_mean
     result_df = pd.DataFrame(result)
+    result_df = result_df.sort_values(by='pi', ascending=False)
     print(result_df)
 
     import matplotlib.pyplot as plt
     fig = plt.figure()
-    plt.barh(result_df['feature'],result_df['pi'])
+    plt.barh(result_df['feature'][::-1],result_df['pi'][::-1])
     plt.title('Permutation Feature Importance')
 
 
